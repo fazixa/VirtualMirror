@@ -22,7 +22,6 @@ print("[INFO] camera sensor warming up...")
 cap = cv2.VideoCapture(0)
 time.sleep(2.0)
 
-
 # applying makup on frames
 while True:
     # frame rate and resize frame

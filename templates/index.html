@@ -1,0 +1,43 @@
+<html>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='js/form.js') }}"></script>
+<link rel="stylesheet" href="static/css/styles.css">
+
+
+
+
+<head>
+  <title>Virtual makeup</title>
+</head>
+
+<body>
+
+
+
+
+  
+  <a href="#overlay" id="open-overlay" onclick="opencam()">Open Overlay</a>
+
+  <div id="overlay">
+      <a href="#" class="close" onclick="camrelease()">&times;</a>
+      <div style="height:20%"></div>
+      
+      <h2 style="font-size:35px">Pure CSS Overlay</h2>
+      <br />
+      <br />
+      <br />
+      <p style="font-size:22px;">This overlay is made using zero javascript. With the CSS :target pseudo class. You can target an element then change it's properties. Here we hide this div then show it upon targeting. (see the URL). To exit we'll just change the URL back!</p>
+      <img src="{{ url_for('video_feed') }}">
+      <br><br>
+      <button style="background-color:rgb(248, 93, 66);" class="color" onclick="myFunction(248, 93, 66)"></button>
+      <button style="background-color:rgb(255, 136, 251);" class="color" onclick="myFunction(255, 136, 251)"></button>
+  </div>
+  <div id="mask" onclick="document.location='#';"></div> <!-- the only javascript -->
+ 
+
+
+
+</body>
+
+</html>
