@@ -6,7 +6,7 @@
  * @desc [description]
 """
 
-
+from __future__ import division
 import cv2
 from pylab import *
 import numpy as np
@@ -28,14 +28,11 @@ class eyeshadow(object):
         self.im_copy = self.image.copy()
         self.height, self.width = self.image.shape[:2]
 
-
-
     # -------- general methods ----------
     def interpolate(self, lx=[],ly=[],k1='quadratic'):
         unew = np.arange(lx[0], lx[-1]+1, 1)
         f2 = interp1d(lx, ly, kind=k1)
         return (f2,unew)
-
 
     def apply_color(self,x,y):
         # converting desired parts of the original image to LAB color space
@@ -93,9 +90,8 @@ class eyeshadow(object):
         return x_left_eye_lower, x_left_eye_upper,y_left_eye_lower,y_left_eye_upper,\
             x_right_eye_lower,x_rigth_eye_upper,y_right_eye_lower,y_right_eye_upper
 
-
     def apply_eyeshadow(self, landmarks_x,landmarks_y, r, g ,b, intensity):
-        
+
         self.r = r
         self.g = g
         self.b = b

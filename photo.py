@@ -20,20 +20,12 @@ img = io.imread('./data/input/input.jpg')
 detected_faces = detector(img, 0)
 pose_landmarks = face_pose_predictor(img, detected_faces[0])
 
-
 # preparing landmarks
-# landmark = np.empty([68, 2], dtype=int)
-# for i in range(68):
-#     landmark[i][0] = pose_landmarks.part(i).x
-#     landmark[i][1] = pose_landmarks.part(i).y
-
-
 landmarks_x = []
 landmarks_y = []
 for i in range(68):
     landmarks_x.append(pose_landmarks.part(i).x)
     landmarks_y.append(pose_landmarks.part(i).y)
-
 
 # applying makeup
 eyeshadow = eyeshadow(img)

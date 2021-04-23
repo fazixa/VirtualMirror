@@ -1,28 +1,60 @@
-/**
+"""
  * @author Faezeh Shayesteh
  * @email shayesteh.fa@gmail.com
- * @create date 2021-04-23 03:45:13
- * @modify date 2021-04-23 03:45:27
+ * @create date 2021-04-23 21:26:28
+ * @modify date 2021-04-23 21:26:28
  * @desc [description]
- */
+"""
 
-import cv2
+import imutils
+import time
 import dlib
+import cv2
 import numpy as np
-from skimage import io
 from makeup.eyeshadow import eyeshadow
 
-# detecting face lanmarks of the input image
+#initiating camera
+prev = 0
+frame_rate = 15
 detector = dlib.get_frontal_face_detector()
 face_pose_predictor = dlib.shape_predictor("./data/shape_predictor_68_face_landmarks.dat")
-img = io.imread('./data/input.jpg')
-detected_faces = detector(img, 0)
-pose_landmarks = face_pose_predictor(img, detected_faces[0])
+print("[INFO] camera sensor warming up...")
+cap = cv2.VideoCapture(0)
+time.sleep(2.0)
 
-landmark = np.empty([68, 2], dtype=int)
-for i in range(68):
-    x.append(pose_landmarks.part(i).x)
-    y.append(pose_landmarks.part(i).y)
 
-m = eyeshadow(img)
-im = m.apply_eyeshadow(landmark)
+# applying makup on frames
+while True:
+    # frame rate and resize frame
+    ret, frame = cap.read()
+    time_elapsed = time.time() - prev
+    frame = imutils.resize(frame, width = 700)
+
+    if(time_elapsed > 1./frame_rate):
+        # preparing frame
+        prev = time.time()
+        gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        eye = eyeshadow(frame2)
+        # detect faces in frame
+        detected_faces = detector(gray, 0)
+        landmarks_x = []
+        landmarks_y = []    
+        # get landmarks of the face
+        try:
+            pose_landmarks = face_pose_predictor(gray, detected_faces[0])
+            for i in range(68):
+                landmarks_x.append(pose_landmarks.part(i).x)
+                landmarks_y.append(pose_landmarks.part(i).y)
+            frame = eye.apply_eyeshadow(landmarks_x,landmarks_y,100,20,90,0.5)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        except Exception as e:
+            print(e)
+    # show face with applied makeup
+    cv2.imshow("Frame", frame)
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("q"):
+        break
+
+# do a bit of cleanup
+cv2.destroyAllWindows()
