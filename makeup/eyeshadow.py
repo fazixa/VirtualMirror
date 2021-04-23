@@ -100,33 +100,20 @@ class eyeshadow(object):
         self.g = g
         self.b = b
         self.intensity = intensity
-
+        # get eyes point
         x_left_eye_lower, x_left_eye_upper,y_left_eye_lower,y_left_eye_upper,x_right_eye_lower,\
         x_rigth_eye_upper,y_right_eye_lower,y_right_eye_upper = self.get_point(landmarks_x,landmarks_y)
-
+        # create interpolated path
         left_eye_lower_path = self.interpolate(x_left_eye_lower[:],y_left_eye_lower[:],'cubic')
         left_eye_upper_path = self.interpolate(x_left_eye_upper[:],y_left_eye_upper[:],'cubic')
         right_eye_lower_path = self.interpolate(x_right_eye_lower[:],y_right_eye_lower[:],'cubic')
         right_eye_upper_path = self.interpolate(x_rigth_eye_upper[:],y_right_eye_upper[:],'cubic')
-
-        x = []
-        y = []
-        # for i in left_eye_lower_path[1]:
-        #     for j in range(int(left_eye_upper_path[0](i)),int(left_eye_lower_path[0](i))):
-        #             x.append(int(j))
-        #             y.append(int(i))
-
-        # for i in l_r[1]:
-        #     for j in range(int(u_r[0](i)),int(l_r[0](i))):
-        #             x.append(int(j))
-        #             y.append(int(i))
-
+        # filling points eyelids
         x_all_left,y_all_left = self.fill(left_eye_lower_path,left_eye_upper_path)
         x_all_right,y_all_right = self.fill(right_eye_lower_path,right_eye_upper_path)
         x_all = x_all_left +  x_all_right
         y_all = y_all_left + y_all_right
-
-
+        # apply color
         self.apply_color(x_all,y_all)
         self.apply_blur(x_all,y_all)
         return self.im_copy
