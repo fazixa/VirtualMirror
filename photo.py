@@ -11,6 +11,7 @@ import dlib
 import numpy as np
 from skimage import io
 from makeup.eyeshadow import eyeshadow
+from makeup.blush import blush
 
 
 # detecting face lanmarks of the input image
@@ -28,12 +29,14 @@ for i in range(68):
     landmarks_y.append(pose_landmarks.part(i).y)
 
 # applying makeup
-eyeshadow = eyeshadow(img)
-img = eyeshadow.apply_eyeshadow(landmarks_x,landmarks_y, 100, 20 ,50,0.8)
+e = eyeshadow(img)
+b = blush(img)
+# img = e.apply_eyeshadow(landmarks_x,landmarks_y, 100, 20 ,50,0.8)
+img = b.apply_blush(landmarks_x,landmarks_y, 100, 20 ,50,0.8)
 
 #writing image
 img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-cv2.imwrite('./data/results/eyeshadow.jpg',img)
+cv2.imwrite('./data/results/eyeshadow1.jpg',img)
 # plt.figure()
 # plt.imshow(im)
 # plt.show()
