@@ -5,15 +5,13 @@
  * @modify date 2021-04-23 03:45:27
  * @desc [description]
 """
-
 import cv2
 import dlib
 import numpy as np
 from skimage import io
 from makeup.eyeshadow import eyeshadow
 
-
-# detecting face lanmarks of the input image
+# detecting face landmarks of the input image
 detector = dlib.get_frontal_face_detector()
 face_pose_predictor = dlib.shape_predictor("./data/shape_predictor_68_face_landmarks.dat")
 img = io.imread('./data/input/input.jpg')
@@ -29,11 +27,11 @@ for i in range(68):
 
 # applying makeup
 eyeshadow = eyeshadow(img)
-img = eyeshadow.apply_eyeshadow(landmarks_x,landmarks_y, 100, 20 ,50,0.8)
+img = eyeshadow.apply_eyeshadow(landmarks_x, landmarks_y, 100, 20, 50, 0.8)
 
-#writing image
+# writing image
 img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-cv2.imwrite('./data/results/eyeshadow.jpg',img)
+cv2.imwrite('./data/results/eyeshadow.jpg', img)
 # plt.figure()
 # plt.imshow(im)
 # plt.show()
