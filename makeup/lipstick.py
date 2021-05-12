@@ -373,14 +373,11 @@ class lipstick(object):
         """apllies lipstick on thedetected face
 
         Args:
-            param1 : X cordinates of the lips
-            param2 : Y cordinates of the lips
-            param3 : X cordinates of the glossy parts of the lips which were calculated in the last frame (this param is just needed when the fram is solid and motion value equals to 0)
-            param4 : y cordinates of the glossy parts of the lips which were calculated in the last frame (this param is just needed when the fram is solid and motion value equals to 0)
+            param1 : X cordinates 
+            param2 : Y cordinates 
             param5 : red 
             param6 : green
             param7 : blue
-            param8 : wheter motion is detected
             param9 : type of the lipstick which can be soft and hard
             param10 : whether gloss need to be added to the lipstick
             

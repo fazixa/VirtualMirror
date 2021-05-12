@@ -101,7 +101,6 @@ class foundation(object):
     def get_interior_points(self, x, y):
         intx = []
         inty = []
-        print('start get_interior_points')
 
         def ext(a, b, i):
             a, b = round(a), round(b)
@@ -109,12 +108,9 @@ class foundation(object):
             inty.extend((ones(b - a) * i).tolist())
 
         x, y = np.array(x), np.array(y)
-        print('x,y get_interior_points')
         xmin, xmax = amin(x), amax(x)
         xrang = np.arange(xmin, xmax + 1, 1)
-        print(type(xrang))
-        print('x-rang')
-        print(xrang)
+   
         for i in xrang:
             try:
                 ylist = y[where(x == i)]
@@ -122,7 +118,6 @@ class foundation(object):
             except ValueError:  # raised if `y` is empty.
                 pass
 
-        print('xrang2 get_interior_points')
         return np.array(intx, dtype=np.int32), np.array(inty, dtype=np.int32)
 
     def __fill_blush_color(self, intensity):

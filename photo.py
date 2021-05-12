@@ -25,11 +25,18 @@ for i in range(68):
     landmarks_x.append(pose_landmarks.part(i).x)
     landmarks_y.append(pose_landmarks.part(i).y)
 
+
+
+
 # applying makeup
 eyeshadow = eyeshadow(img)
 img = eyeshadow.apply_eyeshadow(landmarks_x, landmarks_y, 100, 20, 50, 0.8)
 
 # writing image
+
+cv2.imshow("Cropped Image", img)
+cv2.waitKey(0)
+
 img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 cv2.imwrite('./data/results/eyeshadow.jpg', img)
 # plt.figure()

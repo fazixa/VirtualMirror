@@ -22,7 +22,7 @@ class eyeshadow(object):
         self.g = 0
         self.b = 0
         self.intensity = 0
-        self.eyeshadow_height = 1.02
+        self.eyeshadow_height = 1
         # Original image
         self.image = img
         # All the changes will be applied to im_copy
