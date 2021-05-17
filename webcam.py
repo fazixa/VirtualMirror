@@ -14,13 +14,14 @@ import numpy as np
 from makeup.eyeshadow import eyeshadow
 from makeup.lipstick import lipstick
 from makeup.lenses import lenses
+from makeup.counsiler import counsiler
 #initiating camera
 prev = 0
 frame_rate = 15
 detector = dlib.get_frontal_face_detector()
 face_pose_predictor = dlib.shape_predictor("./data/shape_predictor_68_face_landmarks.dat")
 print("[INFO] camera sensor warming up...")
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 time.sleep(2.0)
 
 
@@ -36,8 +37,9 @@ while True:
         prev = time.time()
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        eye = eyeshadow(frame2)
-        lip = lipstick(frame2)
+        # eye = eyeshadow(frame2)
+        # lip = lipstick(frame2)
+        c = counsiler()
         # detect faces in frame
         detected_faces = detector(gray, 0)
         landmarks_x = []
@@ -49,8 +51,9 @@ while True:
                 for i in range(68):
                     landmarks_x.append(pose_landmarks.part(i).x)
                     landmarks_y.append(pose_landmarks.part(i).y)
-                frame= eye.changeEyeColor(frame2, 'blue', False)
-                frame = eye.apply_eyeshadow(landmarks_x,landmarks_y,100,20,90,0.5)
+                frame = c.apply_blush(frame2, landmarks_x, landmarks_y, 100, 20, 40, 51, 51, 0.3)
+                # frame= eye.changeEyeColor(frame2, 'blue', False)
+                # frame = eye.apply_eyeshadow(landmarks_x,landmarks_y,100,20,90,0.5)
                 # frame = lip.apply_lipstick(landmarks_x,landmarks_y,100, 20 , 30, "soft", False)
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         except Exception as e:
