@@ -26,14 +26,15 @@ cap = cv2.VideoCapture(0)
 time.sleep(2.0)
 
 padding = 50
-face_resized_width = 250
+padding_up =50
+face_resized_width = 230
 
 # applying makup on frames
 while True:
     # frame rate and resize frame
     ret, frame = cap.read()
     time_elapsed = time.time() - prev
-    frame = imutils.resize(frame, width = 1000)
+    # frame = imutils.resize(frame, width = 1000)
 
     try:
         # preparing frame
@@ -62,10 +63,15 @@ while True:
             orignal_face_width = x2-x1
             ratio = face_resized_width / orignal_face_width
             new_padding = int(padding / ratio)
+            # new_padding_up = int(padding_up/ratio)
             new_y1= max(y1-new_padding,0)
             new_y2= min(y2+new_padding,height)
             new_x1= max(x1-new_padding,0)
             new_x2= min(x2+new_padding,width)
+            # new_y1= y1-new_padding_up
+            # new_y2= y2+new_padding
+            # new_x1= x1-new_padding
+            # new_x2= x2+new_padding
             cropped_img = frame2[ new_y1:new_y2, new_x1:new_x2]
             cropped_img = imutils.resize(cropped_img, width = (face_resized_width+2*padding))
 
