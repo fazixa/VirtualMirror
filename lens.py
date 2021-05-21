@@ -9,6 +9,8 @@ from pylab import *
 import numpy as np
 from numpy import c_
 from skimage import color
+from irisSeg import irisSeg
+import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d, splprep, splev
 def eyeAspectRatio(points):
@@ -25,7 +27,7 @@ def getROI(frame, image, landmarks, eye):
         points = [42, 43, 44, 45, 46, 47]
         
     region = np.array([[landmarks.part(point).x, landmarks.part(point).y] for point in points])
-    margin = 7
+    margin = 17
     
     left = np.min(region[:, 0])
     top = np.min(region[:, 1])
@@ -34,7 +36,15 @@ def getROI(frame, image, landmarks, eye):
     
     height = abs(top - bottom)
     width = abs(left - right)	
-    grayEye = image[top:bottom, left+margin:right-margin]
+    grayEye = image[top-10:bottom+10, left-10:right+10]
+
+    coord_iris, coord_pupil, output_image = irisSeg(grayEye, 40, 70)
+    print(coord_iris) # radius and the coordinates for the center of iris 
+    print(coord_pupil) # radius and the coordinates for the center of pupil 
+    # plt.imshow(output_image)
+    # plt.show()
+    cv2.imshow('ddd', output_image)
+    # cv2.imwrite('file.jpg', grayEye)
     roi = frame[top:bottom, left+margin:right-margin]
     thresh = calibrate(grayEye)
     _, threshEye = cv2.threshold(grayEye, thresh, 255, cv2.THRESH_BINARY)
@@ -42,14 +52,10 @@ def getROI(frame, image, landmarks, eye):
     x, y = getIris(prepEye, roi)
     eye_radius = np.uint16((landmarks.part(38).x - landmarks.part(37).x) / 2)
     center= np.empty([2], dtype=int)
-    center[0] = x+left
-    center[1] = y+top
+    center[0] = x+left+3
+    center[1] = y+top+3
 
-    x_fill, y_fill = fill(eye_radius, center )
-    y_fill, x_fill = get_interior_points(x_fill, y_fill)
-    frame = apply_color(x_fill, y_fill, frame)
-    frame = apply_blur(x_fill, y_fill, frame)
-    cv2.imshow("ff",frame)
+
     # for x, y in zip(x_fill, y_fill):
     #     frame = cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
     #text = str((x*left)/(width*100.0))
@@ -59,7 +65,7 @@ def getROI(frame, image, landmarks, eye):
     
     ear = eyeAspectRatio(region)
     
-    return (x*left)/(width*100.0), (y*top)/(height*100.0), ear
+    return center, eye_radius
 
 def fill(r, center):
     points_1 = [center[0] - r, center[1]]
@@ -111,9 +117,24 @@ def apply_color( y, x, frame):
     r = 20
     g = 220
     b = 20
-    intensity = 0.4
-    # converting desired parts of the original image to LAB color space
-    lip_LAB = color.rgb2lab((frame[x, y] / 255.).reshape(len(x), 1, 3)).reshape(len(x), 3)
+    intensity = 0.3
+
+    x1 = []
+    y1 = []
+
+    for i, (x_, y_) in enumerate(zip(x, y)):
+        if frame[x_,y_,0]<80:
+            x1.append(x_)
+            y1.append(y_)
+
+
+    print("________________________________________",x, x.shape)
+    # t = np.array(list(zip(x, y)))
+    # t = t[frame[t[0, :]] > 200]
+    # x = t[0, :]
+    # y = t[:, 0]
+                    # converting desired parts of the original image to LAB color space
+    lip_LAB = color.rgb2lab((frame[x1, y1] / 255.).reshape(len(x1), 1, 3)).reshape(len(x1), 3)
     # calculating mean of each channel
     L, A, B = mean(lip_LAB[:, 0]), mean(lip_LAB[:, 1]), mean(lip_LAB[:, 2])
     # converting the color of the makeup to LAB
@@ -122,52 +143,61 @@ def apply_color( y, x, frame):
     # applying the makeup color on image
     # L1, A1, B1 = color.rgb2lab(np.array((self.r / 255., self.g / 255., self.b / 255.)).reshape(1, 1, 3)).reshape(3, )
     G = L1 / L
-    lip_LAB = lip_LAB.reshape(len(x), 1, 3)
+    lip_LAB = lip_LAB.reshape(len(x1), 1, 3)
     lip_LAB[:, :, 1:3] = intensity * np.array([A1, B1]) + (1 - intensity) * lip_LAB[:, :, 1:3]
     lip_LAB[:, :, 0] = lip_LAB[:, :, 0] * (1 + intensity * (G - 1))
     # converting back toRGB
     # print(self.r,self.g,self.b)
-    frame[x,y] = color.lab2rgb(lip_LAB).reshape(len(x), 3) * 255
+    frame[x1,y1] = color.lab2rgb(lip_LAB).reshape(len(x1), 3) * 255
     # cv2.imshow("Frame", frame)
     
     return frame
 
-def apply_blur( y, x, frame):
+def apply_blur( y, x, frame, farme_c):
     # gussian blur
     height,width = frame.shape[:2]
     filter = np.zeros((height,width))
-
+    
     # kernel = np.ones((15, 15), np.uint8)
     # filter = cv2.erode(filter, kernel, iterations=1)
-    cv2.fillConvexPoly(filter, np.array(c_[y, x], dtype='int32'), 250)
+    cv2.fillConvexPoly(filter, np.array(c_[y, x], dtype='int32'), 1)
     filter = cv2.GaussianBlur(filter, (21, 21), 0)
     # Erosion to reduce blur size
-    # kernel = np.ones((15,15), np.uint8)
-    # filter = cv2.erode(filter, kernel, iterations=1)
+    kernel = np.ones((2,2), np.uint8)
+    filter = cv2.erode(filter, kernel, iterations=1)
     
     alpha = np.zeros([height, width, 3], dtype='float64')
     alpha[:, :, 0] = filter
     alpha[:, :, 1] = filter
     alpha[:, :, 2] = filter
-    # frame = (alpha * frame + (1 - alpha) * frame).astype('uint8')   
-    frame = alpha.astype('uint8')   
+    frame = (alpha * frame + (1 - alpha) * frame_c).astype('uint8')   
+    # frame = alpha.astype('uint8')   
     return frame
 
 
-def apply_blur2(x, y, frame):
-    intensity = 0.6
+def apply_blur2(y, x, frame):
+    intensity = 0.1
     r = 20
     g = 220
     b = 20
     # Create blush shape
     height,width = frame.shape[:2]
     mask = np.zeros((height, width))
-    cv2.fillConvexPoly(mask, np.array(c_[y, x], dtype='int32'), 1)
+    cv2.fillConvexPoly(mask, np.array(c_[y, x], dtype='int32'), 250)
     
-    mask = cv2.GaussianBlur(mask, (81, 81), 0) * intensity
-    kernel = np.ones((15, 15), np.uint8)
-    mask = cv2.erode(mask, kernel, iterations=1)
+    mask = mask* intensity
+    # kernel = np.ones((15, 15), np.uint8)
+    # mask = cv2.erode(mask, kernel, iterations=1)
     # print(np.array(c_[x_right, y_right])[:, 0])
+
+
+    # alpha = np.zeros([height, width, 3], dtype='float64')
+    # alpha[:, :, 0] = mask
+    # alpha[:, :, 1] = mask
+    # alpha[:, :, 2] = mask
+
+
+    # frame = alpha.astype('uint8') 
     val = cv2.cvtColor(frame, cv2.COLOR_RGB2LAB).astype(float)
 
     val[:, :, 0] = val[:, :, 0] / 255. * 100.
@@ -186,7 +216,7 @@ def apply_blur2(x, y, frame):
     val[:, :, 0] = np.clip(val[:, :, 0] + lab[:, :, 0], 0, 100)
     val[:, :, 1] = np.clip(val[:, :, 1] + lab[:, :, 1], -127, 128)
     val[:, :, 2] = np.clip(val[:, :, 2] + lab[:, :, 2], -127, 128)
-
+    
     frame = (color.lab2rgb(val) * 255).astype(np.uint8)
     return frame
 
@@ -263,6 +293,7 @@ if __name__ == "__main__":
     while True:
         retr, frame = cap.read()
         frame = cv2.flip(frame, 1)
+        frame_c = frame.copy()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         try:
             faces = detector(gray)
@@ -272,30 +303,38 @@ if __name__ == "__main__":
         except: 
             continue
         margin = 7
-        Lhori, Lverti, Lear = getROI(frame, gray, landmarks, 0)
+        center , r = getROI(frame, gray, landmarks, 0)
         
-        Rhori, Rverti, Rear = getROI(frame, gray, landmarks, 1)
-        
-        avgEAR = (Lear + Rear) / 2.0
-        
-        avgHori = (Lhori + Rhori) / 2.0
-        avgVerti = (Lverti + Rverti) / 2.0
-        
-        if avgHori < 0.8:
-            printText(frame, "LEFT")
-        elif avgHori > 1.70:
-            printText(frame, "RIGHT")
-        elif avgVerti < 0.60:
-            printText(frame, "UP")
-        else:
-            printText(frame, "CENTER")
-        
-        if(avgEAR < 0.20):
-            if(previousRatio >= 0.20):
-                total += 1
-        previousRatio = avgEAR
+        # getROI(frame, gray, landmarks, 1)
+
+
+        x_fill, y_fill = fill(r, center )
+        y_fill, x_fill = get_interior_points(x_fill, y_fill)
+        frame = apply_color(x_fill, y_fill, frame)
+        frame = apply_blur(x_fill, y_fill, frame, frame_c)
+
+        # cv2.imshow("ff",frame)
             
-        cv2.putText(frame, "Counter: " + str(total), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        # avgEAR = (Lear + Rear) / 2.0
+        
+        # avgHori = (Lhori + Rhori) / 2.0
+        # avgVerti = (Lverti + Rverti) / 2.0
+        
+        # if avgHori < 0.8:
+        #     printText(frame, "LEFT")
+        # elif avgHori > 1.70:
+        #     printText(frame, "RIGHT")
+        # elif avgVerti < 0.60:
+        #     printText(frame, "UP")
+        # else:
+        #     printText(frame, "CENTER")
+        
+        # if(avgEAR < 0.20):
+        #     if(previousRatio >= 0.20):
+        #         total += 1
+        # previousRatio = avgEAR
+            
+        # cv2.putText(frame, "Counter: " + str(total), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
         
         # cv2.imshow("Frame", frame)
         

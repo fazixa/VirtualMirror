@@ -83,7 +83,7 @@ class Blush(object):
 
         print('xrang2 get_interior_points')
         return np.array(intx, dtype=np.int32), np.array(inty, dtype=np.int32)
-    
+
 
     def apply_blush(self, img, landmarks_x, landmarks_y, r, g, b, intensity):
         self.r = r
@@ -134,13 +134,30 @@ class Blush(object):
     def apply_blur(self, x, y):
         # gussian blur
         filter = np.zeros((self.height, self.width))
-        cv2.fillConvexPoly(filter, np.array(c_[y, x], dtype='int32'), 1)
-        filter = cv2.GaussianBlur(filter, (51, 51), 0)
+        # cv2.fillConvexPoly(filter, np.array(c_[y, x], dtype='int32'), 250)
+        # for x_cor in x:
+        filter[x, y] =1
+        
         # Erosion to reduce blur size
-        kernel = np.ones((15,15), np.uint8)
+
+        filter = cv2.GaussianBlur(filter, (51, 51), 0)
+        kernel = np.ones((25,10), np.uint8)
         filter = cv2.erode(filter, kernel, iterations=1)
+
+        
         alpha = np.zeros([self.height, self.width, 3], dtype='float64')
+        alpha2 = np.zeros([self.height, self.width, 3], dtype='float64')
+
+        filter2 = 1.5 * filter
         alpha[:, :, 0] = filter
         alpha[:, :, 1] = filter
         alpha[:, :, 2] = filter
-        self.im_copy = (alpha * self.im_copy + (1 - alpha) * self.image).astype('uint8')
+
+        # self.im_copy = alpha.astype('uint8')
+
+        # for x, y in zip(x, y):
+        #    self.im_copy = cv2.circle( self.im_copy, (x, y), 1, (0, 0, 255), -1)
+
+
+        self.im_copy = (alpha * self.im_copy + (1.2 - alpha) * self.image).astype('uint8')
+        

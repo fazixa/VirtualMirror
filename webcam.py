@@ -10,11 +10,13 @@ import imutils
 import time
 import dlib
 import cv2
+from matplotlib.pyplot import imshow
 import numpy as np
 from makeup.eyeshadow import eyeshadow
 from makeup.lipstick import lipstick
 from makeup.lenses import lenses
 from makeup.counsiler import Concealer
+from makeup.blush import Blush
 #initiating camera
 prev = 0
 frame_rate = 15
@@ -39,7 +41,7 @@ while True:
         frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # eye = eyeshadow(frame2)
         # lip = lipstick()
-        c = Concealer()
+        c = Blush()
         # detect faces in frame
         detected_faces = detector(gray, 0)
         landmarks_x = []
@@ -51,7 +53,7 @@ while True:
             for i in range(68):
                 landmarks_x.append(pose_landmarks.part(i).x)
                 landmarks_y.append(pose_landmarks.part(i).y)
-            frame = c.apply_blush(frame2, landmarks_x, landmarks_y, 100, 20, 40, 51, 51, 0.4)
+            frame = c.apply_blush(frame2, landmarks_x, landmarks_y, 100, 20, 40, 0.4)
             # frame= eye.changeEyeColor(frame2, 'blue', False)
             # frame = eye.apply_eyeshadow(landmarks_x,landmarks_y,100,20,90,0.5)
             # frame = lip.apply_lipstick(frame2, landmarks_x,landmarks_y, 250, 66 , 66, 0.8, "hard", True)
